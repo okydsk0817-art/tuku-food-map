@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>土庫美食地圖</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: "Noto Sans TC", sans-serif;
+        margin: 0;
+        background: #f6f4ef;
+        color: #333;
+    }
+    .navbar {
+        background: #8b2e1a;
+        color: #fff;
+        padding: 15px 30px;
+        font-size: 22px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        margin-left: 20px;
+        font-size: 18px;
+        transition: color 0.3s;
+    }
+    .navbar a:hover {
+        color: #f6d49e;
+    }
+    .banner {
+        background: #a8422d;
+        height: 260px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        font-size: 48px;
+        font-weight: 900;
+    }
+    .container {
+        width: 90%;
+        max-width: 1100px;
+        margin: 40px auto;
+        padding-bottom: 60px;
+    }
+    h2 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        border-left: 6px solid #8b2e1a;
+        padding-left: 10px;
+        color: #8b2e1a;
+    }
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        line-height: 1.6;
+        margin-bottom: 40px;
+    }
+    .shop-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+    }
+    .shop-card {
+        text-decoration: none;
+        color: inherit;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .shop-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    }
+
+    /* 圖片容器與右下角斜切效果 */
+    .img-wrapper {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+    }
+    .shop-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #e0e0e0;
+    }
+    /* 斜切遮蓋：白色三角形 */
+    .img-wrapper::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 40px; /* 控制斜邊寬度 */
+        height: 20px; /* 控制斜邊高度 */
+        background: white;
+        clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+    }
+
+    .shop-card .info {
+        padding: 15px;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
+    .modal:target {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        width: 90%;
+        max-width: 450px;
+        padding: 30px 20px;
+        border-radius: 12px;
+        text-align: center;
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 30px;
+        cursor: pointer;
+        color: #8b2e1a;
+        text-decoration: none;
+        line-height: 1;
+    }
+    .modal-img-box {
+        width: 100%;
+        height: 220px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        background: #fff8e1;
+    }
+    .modal-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .modal-content h2 {
+        border-left: none;
+        text-align: center;
+        padding-left: 0;
+        margin-bottom: 15px;
+    }
+    .modal-content p {
+        margin: 5px 0;
+        font-size: 16px;
+        color: #555;
+        text-align: left;
+    }
+    .modal-content .shop-desc {
+        margin-top: 15px;
+        color: #333;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+    .map-btn {
+        display: inline-block;
+        background: #8b2e1a;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-top: 20px;
+        font-weight: 700;
+        transition: background 0.3s;
+    }
+    .map-btn:hover {
+        background: #a8422d;
+    }
+</style>
+</head>
+<body>
+    <div class="navbar">
+        <div>土庫第一等-土庫美食地圖</div>
+        <div>
+            <a href="#intro">簡介</a>
+            <a href="#shops">美食店家</a>
+        </div>
+    </div>
+
+    <div class="banner">探索在地美味</div>
+
+    <div class="container">
+        <h2 id="intro">簡介</h2>
+        <div class="card">
+            <p>歡迎來到土庫美食地圖！雲林縣土庫鎮保留了許多傳統的在地小吃和老店。點擊下方卡片可查看各店詳細地址、營業時間並直接開啟 Google 地圖導航。</p>
+        </div>
+
+        <h2 id="shops">精選店家</h2>
+        <div class="shop-list">
+            <a href="#shop1" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku012.png" class="shop-card-img" alt="怪人花枝鱔魚麵"></div>
+                <div class="info">怪人花枝鱔魚麵</div>
+            </a>
+            <a href="#shop2" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku011.jpg" class="shop-card-img" alt="阿海師鴨肉麵線"></div>
+                <div class="info">阿海師鴨肉麵線</div>
+            </a>
+            <a href="#shop3" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku009.webp" class="shop-card-img" alt="許家古早味紅龜粿"></div>
+                <div class="info">許家古早味紅龜粿</div>
+            </a>
+            <a href="#shop4" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku008.jpg" class="shop-card-img" alt="金茂利鐘錶咖啡"></div>
+                <div class="info">金茂利鐘錶咖啡</div>
+            </a>
+            <a href="#shop5" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku007.png" class="shop-card-img" alt="西屯滷味"></div>
+                <div class="info">西屯滷味</div>
+            </a>
+            <a href="#shop6" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku006.jpg" class="shop-card-img" alt="土庫鄧肉圓"></div>
+                <div class="info">土庫鄧肉圓</div>
+            </a>
+            <a href="#shop7" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku005.jpg" class="shop-card-img" alt="老方米糕"></div>
+                <div class="info">老方米糕</div>
+            </a>
+            <a href="#shop8" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku004.jpg" class="shop-card-img" alt="阿茂牛肉麵"></div>
+                <div class="info">阿茂牛肉麵</div>
+            </a>
+            <a href="#shop9" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku003.png" class="shop-card-img" alt="川龍食堂"></div>
+                <div class="info">川龍食堂</div>
+            </a>
+            <a href="#shop10" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku002.jpg" class="shop-card-img" alt="土庫手工湯包"></div>
+                <div class="info">土庫手工湯包</div>
+            </a>
+            <a href="#shop11" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku001.png" class="shop-card-img" alt="Danke奧地利廚房"></div>
+                <div class="info">Danke奧地利廚房</div>
+            </a>
+            <a href="#shop12" class="shop-card">
+                <div class="img-wrapper"><img src="images/tuku010.jpg" class="shop-card-img" alt="黑金燒麻糬"></div>
+                <div class="info">黑金燒麻糬</div>
+            </a>
+        </div>
+    </div>
+
+    <div id="shop1" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku012.png"></div>
+            <h2>怪人花枝鱔魚麵</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路105號</p>
+            <p>⏰ <strong>時間：</strong>10:00–21:30 (週一休)</p>
+            <p class="shop-desc">以濃郁羹湯與大火快炒香氣聞名，鱔魚脆口鮮甜。</p>
+            <a href="https://maps.google.com/?q=怪人花枝鱔魚麵" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop2" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku011.jpg"></div>
+            <h2>阿海師鴨肉麵線</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路137號</p>
+            <p>⏰ <strong>時間：</strong>08:00–19:00</p>
+            <p class="shop-desc">鴨肉質地軟嫩，湯頭清鮮，是土庫最具代表性的老店。</p>
+            <a href="https://maps.google.com/?q=阿海師鴨肉麵線" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop3" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku009.webp"></div>
+            <h2>許家古早味紅龜粿</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路142號</p>
+            <p>⏰ <strong>時間：</strong>07:00–12:30</p>
+            <p class="shop-desc">百年傳承手作米食，皮Q餡實，充滿傳統米香。</p>
+            <a href="https://maps.google.com/?q=許家古早味紅龜粿" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop4" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku008.jpg"></div>
+            <h2>金茂利鐘錶咖啡</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路133號</p>
+            <p>⏰ <strong>時間：</strong>11:00–18:00 (週二休)</p>
+            <p class="shop-desc">在老鐘錶行內品嚐咖啡，氛圍充滿歷史感與懷舊美學。</p>
+            <a href="https://maps.google.com/?q=金茂利鐘錶咖啡" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop5" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku007.png"></div>
+            <h2>西屯滷味</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮三民街23號</p>
+            <p>⏰ <strong>時間：</strong>15:00–23:00 (週一休)</p>
+            <p class="shop-desc">在地推薦的老字號滷味，入味而不膩，是下午茶或宵夜首選。</p>
+            <a href="https://maps.google.com/?q=西屯滷味" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop6" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku006.jpg"></div>
+            <h2>土庫鄧肉圓</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中山路177號</p>
+            <p>⏰ <strong>時間：</strong>06:30–13:00</p>
+            <p class="shop-desc">皮Q有嚼勁，內餡筍干與豬肉比例完美。</p>
+            <a href="https://maps.google.com/?q=土庫鄧肉圓" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop7" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku005.jpg"></div>
+            <h2>老方米糕</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路174號</p>
+            <p>⏰ <strong>時間：</strong>06:00–14:00</p>
+            <p class="shop-desc">粒粒分明的糯米飯淋上特製肉燥，是在地的元氣早午餐。</p>
+            <a href="https://maps.google.com/?q=老方米糕" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop8" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku004.jpg"></div>
+            <h2>阿茂牛肉麵</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路172號</p>
+            <p>⏰ <strong>時間：</strong>11:00–20:30 (週三休)</p>
+            <p class="shop-desc">傳統風味的家常牛肉麵，麵條紮實，湯頭厚實。</p>
+            <a href="https://maps.google.com/?q=阿茂牛肉麵" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop9" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku003.png"></div>
+            <h2>川龍食堂</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中山路165巷9號</p>
+            <p>⏰ <strong>時間：</strong>10:30–13:30, 16:30–19:30 (週二休)</p>
+            <p class="shop-desc">紅磚灶台氛圍，提供充滿家鄉感的台式熱炒菜色。</p>
+            <a href="https://maps.google.com/?q=川龍食堂" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop10" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku002.jpg"></div>
+            <h2>土庫手工湯包</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮新建路61號</p>
+            <p>⏰ <strong>時間：</strong>06:00–12:30 (售完為止)</p>
+            <p class="shop-desc">皮薄多汁，內餡鮮美，是土庫早上的熱門排隊美食。</p>
+            <a href="https://maps.google.com/?q=土庫手工湯包" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop11" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku001.png"></div>
+            <h2>Danke奧地利廚房</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮新建路42-1號</p>
+            <p>⏰ <strong>時間：</strong>09:00–18:00 (週一二三休)</p>
+            <p class="shop-desc">道地奧地利手作甜點，在傳統小鎮中驚豔的異國滋味。</p>
+            <a href="https://maps.google.com/?q=Danke奧地利廚房" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <div id="shop12" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close">×</a>
+            <div class="modal-img-box"><img src="images/tuku010.jpg"></div>
+            <h2>黑金燒麻糬</h2>
+            <p>📍 <strong>地址：</strong>雲林縣土庫鎮中正路194號</p>
+            <p>⏰ <strong>時間：</strong>13:30–20:00</p>
+            <p class="shop-desc">口感軟Q溫潤，搭配花生芝麻粉，是雲林知名的古早味甜點。</p>
+            <a href="https://maps.google.com/?q=黑金燒麻糬" target="_blank" class="map-btn">Google 地圖導航</a>
+        </div>
+    </div>
+
+    <script>
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                window.location.hash = '';
+            }
+        }
+    </script>
+</body>
+</html>
